@@ -11,7 +11,7 @@ const app = new Express();
 // MongoDB Connection
 mongoose.connect(serverConfig.mongoURL, (error, connection) => {
 	if (error) {
-		console.error('Please make sure Mongodb is installed and running!')
+	    console.error(`Ensure MongoDB is running. Using connection string: ${serverConfig.mongoURL}`);
 		throw error;
 	}
 });

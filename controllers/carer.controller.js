@@ -1,6 +1,7 @@
 ﻿import multer from 'multer';
 import sanitizeHtml from 'sanitize-html';
 import Carer from '../models/carer';
+import {avatarPath} from '../config';
 
 export const getCarers = (req, res) => {
     Carer.find().exec((error, carers) => {
@@ -23,7 +24,7 @@ export const getCarer = (req, res) => {
 export const saveAvatar = (req, res) => {
     const storage = multer.diskStorage({
         destination: (req, file, cb) => {
-            cb(null, './build/images/');
+            cb(null, ${avatarPath});
         },
         filename: (req, file, cb) => {
             cb(null, file.fieldname);
@@ -76,13 +77,11 @@ console.log('--------------- saving carer: _' + newCarer + '_');
     });
 };
 
-function replacer(key, value) {
+const replacer = (key, value) => {
     if (value instanceof FileList) {
         return Array.from(value).map(file => file.name).join(', ') || 'No Files Selected';
     }
     return value;
-}
+};
 
-function stringify(values) {
-    return JSON.stringify(values, replacer, 2);
-}
+const stringify = (values) => JSON.stringify(values, replacer, 2);
