@@ -109,6 +109,8 @@ _NCrunch_*
 
 # MightyMoose
 *.mm.*
+
+keyFile.json
 AutoTest.Net/
 
 # Web workbench (sass)

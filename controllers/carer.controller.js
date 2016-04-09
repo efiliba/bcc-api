@@ -1,7 +1,9 @@
 ﻿import multer from 'multer';
+import gcloud from 'gcloud';
+import stream from 'stream';
 import sanitizeHtml from 'sanitize-html';
 import Carer from '../models/carer';
-import {avatarPath} from '../config';
+import {projectId, keyFilename} from '../config';
 
 export const getCarers = (req, res) => {
     Carer.find().exec((error, carers) => {
@@ -22,19 +24,11 @@ export const getCarer = (req, res) => {
 };
 
 export const saveAvatar = (req, res) => {
-    const storage = multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, ${avatarPath});
-        },
-        filename: (req, file, cb) => {
-            cb(null, file.fieldname);
-        }    
-    });
-
-    const upload = multer({ storage,
+    const upload = multer({ 
+        storage: multer.memoryStorage(),
         limits: {
             fileSize: 100000
-        },   
+        },
         fileFilter: (req, file, cb) => {
             if (!file.mimetype.startsWith('image')) {
                 cb(new Error('MIME type not image'));
@@ -44,11 +38,28 @@ export const saveAvatar = (req, res) => {
         }
     }).any();
 
-    upload(req, res, function (error) {
-        if (error) {            
-            res.status(400).send(error);
+    upload(req, res, (err) => {
+        if (err) {
+            res.status(400).send(err);
         } else {
-            //res.json({ avatar:  req.files[0].filename });
+            const bucket = gcloud({projectId, keyFilename}).storage().bucket('bestcc');
+            const bucketFile = bucket.file('images/' + req.files[0].fieldname);
+            var bufferStream = new stream.PassThrough();
+            bufferStream.end(req.files[0].buffer);
+            bufferStream
+                .pipe(bucketFile.createWriteStream({
+                    validation: false,
+                    resumable: false,
+//                    metadata: metadata,
+                    gzip: true
+                }))
+                .on('error', function(err) {
+                    console.log('Error uploading: ' + err);
+                })
+                .on('finish', function() {
+                    //console.log('Worked');
+                });
+
             res.status(200);
         }
     });
