@@ -7,4 +7,4 @@ export default config;
 
 export const mongoURL = config.mongoURL;
 export const projectId = 'bcc-api';
-export const keyFilename = '/bcc-api/keyFile.json';
+export const keyFilename = 'keyFile.json';

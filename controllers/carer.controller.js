@@ -5,23 +5,15 @@ import sanitizeHtml from 'sanitize-html';
 import Carer from '../models/carer';
 import {projectId, keyFilename} from '../config';
 
-export const getCarers = (req, res) => {
-    Carer.find().exec((error, carers) => {
-        if (error) {
-            return res.status(500).send(error);
-        }
-        res.json({carers});
-    });
-};
+export const getCarers = (req, res) => 
+    Carer.find().exec((err, carers) => 
+        err ? res.status(500).send(err) : res.json({carers})
+    );
 
-export const getCarer = (req, res) => {
-    Carer.findOne({ _id: req.query.id}).exec((error, carer) => {
-        if (error) {
-            return res.status(500).send(error);
-        }
-        res.json({carer});
-    });
-};
+export const getCarer = (req, res) =>
+    Carer.findOne({ _id: req.query.id}).exec((err, carer) => 
+        err ? res.status(500).send(err) : res.json({carer})
+    );
 
 export const saveAvatar = (req, res) => {
     const upload = multer({ 
@@ -53,20 +45,14 @@ export const saveAvatar = (req, res) => {
 //                    metadata: metadata,
                     gzip: true
                 }))
-                .on('error', function(err) {
-                    console.log('Error uploading: ' + err);
-                })
-                .on('finish', function() {
-                    //console.log('Worked');
-                });
-
-            res.status(200);
+                .on('error', (err) => res.status(500).send(err))
+                .on('finish', () => res.status(201).send('Created'));
         }
     });
 };
 
 export const saveCarer = (req, res) => {
-	console.log("req", req);
+	//console.log("req", req);
 
     const newCarer = new Carer(req.body.carer);
 
@@ -78,21 +64,18 @@ export const saveCarer = (req, res) => {
 
 console.log('--------------- saving carer: _' + newCarer + '_');
 
-    newCarer.save((error, saved) => {
-        if (error) {
-            console.log('============ERROR: _' + error + '_');
+    newCarer.save((err, saved) => {
+        if (err) {
+            console.log('============ERROR: _' + err + '_');
 
-            return res.status(500).send(error);
+            res.status(500).send(error);
         }
-        return res.json({ carer: saved });
+        res.json({ carer: saved });
     });
 };
 
-const replacer = (key, value) => {
-    if (value instanceof FileList) {
-        return Array.from(value).map(file => file.name).join(', ') || 'No Files Selected';
-    }
-    return value;
-};
+const replacer = (key, value) => 
+    value instanceof FileList ? Array.from(value).map(file => file.name).join(', ') || 'No Files Selected' : value;
+
 
 const stringify = (values) => JSON.stringify(values, replacer, 2);
